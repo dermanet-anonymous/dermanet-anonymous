@@ -58,10 +58,48 @@ python scripts/infer_milk10k.py \
 
 ## Reproducibility notes
 
-- The default configuration preserves the reference notebook's training settings, including `IMG_SIZE=576`, batch size `8`, gradient accumulation `8`, AdamW, cosine annealing, and modality-dropout probability `0.15`.
-- The model's depth aggregation uses **global learned weights**, not sample-specific attention weights.
-- Final output probabilities use **soft hierarchical stitching**. The repository exports raw stitched probabilities and does not apply competition-specific post-processing.
+- The default configuration preserves the reference notebook's training settings, including `IMG_SIZE=512`, batch size `8`, gradient accumulation `8`, AdamW, cosine annealing, and modality-dropout probability `0.15`.
 - Dataset files, challenge test labels, and trained weights are not redistributed.
+
+## Repository Structure
+
+```text
+dermanet-anonymous/
+├── configs/
+│   └── milk10k_reference.yaml
+│
+├── docs/
+│   ├── datasets.md
+│   └── reproducibility.md
+│
+├── scripts/
+│   ├── train_milk10k.py
+│   └── infer_milk10k.py
+│
+├── src/
+│   ├── data/
+│   │   └── milk10k.py
+│   │
+│   ├── models/
+│   │   ├── dermanet.py
+│   │   ├── fusion.py
+│   │   ├── hierarchy.py
+│   │   └── modality_dropout.py
+│   │
+│   ├── training/
+│   │   └── trainer.py
+│   │
+│   ├── evaluation/
+│   │   ├── metrics.py
+│   │   └── tta.py
+│   │
+│   └── utils/
+│       ├── config.py
+│       └── seed.py
+│
+├── requirements.txt
+└── README.md
+```
 
 ## Anonymous review
 
