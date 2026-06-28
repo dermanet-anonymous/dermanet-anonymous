@@ -1,0 +1,40 @@
+seed: 42
+
+data:
+  train_image_dir: data/MILK10k_Training_Input/MILK10k_Training_Input
+  ground_truth_csv: data/MILK10k_Training_Input/MILK10k_Training_GroundTruth.csv
+  validation_fraction: 0.10
+
+model:
+  architecture: tf_efficientnetv2_xl.in21k_ft_in1k
+  pretrained: true
+  feature_levels: [2, 3, 4]
+  embedding_dim: 512
+  fusion_dim: 256
+  dropout: 0.408
+  drop_path_rate: 0.10
+
+training:
+  image_size: 576
+  batch_size: 8
+  accumulation_steps: 8
+  num_epochs: 15
+  learning_rate: 9.4e-5
+  weight_decay: 7.26e-5
+  gate_learning_rate_multiplier: 10.0
+  min_learning_rate_ratio: 0.01
+  modality_dropout_probability: 0.15
+  label_smoothing: 0.10
+  group_loss_weight: 0.6
+  melanocytic_loss_weight: 0.6
+  non_melanocytic_loss_weight: 1.2
+  weighted_sampler_tau: 0.003
+  weighted_sampler_cap: 3.0
+  num_workers: 4
+
+inference:
+  use_eight_view_tta: true
+  logit_adjustment_tau: 0.12
+
+output:
+  checkpoint_path: checkpoints/best_milk10k.pth

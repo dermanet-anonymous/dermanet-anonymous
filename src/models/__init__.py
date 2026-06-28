@@ -1,16 +1,13 @@
 """Model components for DermaNet."""
 
-from .dermanet import DermaNet, MultiLevelEfficientNetEncoder
-from .fusion import DepthGatedAggregator, FusionMLP, PairedFeatureFusion
-from .hierarchy import MelanocyticHierarchy
-from .modality_dropout import ModalityDropout
+from .dermanet import AttentionGatedFusion, DualHierarchicalModel
+from .hierarchy import HierarchySpec, soft_stitch_probabilities
+from .modality_dropout import apply_modality_dropout
 
 __all__ = [
-    "DermaNet",
-    "MultiLevelEfficientNetEncoder",
-    "DepthGatedAggregator",
-    "FusionMLP",
-    "PairedFeatureFusion",
-    "MelanocyticHierarchy",
-    "ModalityDropout",
+    "AttentionGatedFusion",
+    "DualHierarchicalModel",
+    "HierarchySpec",
+    "apply_modality_dropout",
+    "soft_stitch_probabilities",
 ]

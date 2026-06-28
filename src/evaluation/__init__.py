@@ -1,15 +1,6 @@
-"""Evaluation utilities for DermaNet."""
+"""Evaluation helpers."""
 
-from .metrics import (
-    compute_multiclass_metrics,
-    top_k_accuracy,
-    top_k_balanced_accuracy,
-    top_k_predictions,
-)
+from .metrics import compute_multiclass_metrics
+from .tta import predict_eight_view_tta
 
-__all__ = [
-    "compute_multiclass_metrics",
-    "top_k_predictions",
-    "top_k_accuracy",
-    "top_k_balanced_accuracy",
-]
+__all__ = ["compute_multiclass_metrics", "predict_eight_view_tta"]
