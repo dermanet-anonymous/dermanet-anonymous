@@ -10,14 +10,19 @@ from torch import Tensor, nn
 
 class DepthGatedAggregator(nn.Module):
     """
-    Input-dependent aggregation of feature embeddings from multiple backbone depths.
+    Global learned aggregation of feature embeddings from multiple backbone depths.
 
-    Each depth embedding must already be projected into the same dimensionality.
-    For DermaNet, three embeddings from levels 2, 3, and 4 are combined using
-    softmax-normalized, sample-specific weights.
+    Each depth embedding is projected to the same dimensionality. A single
+    learnable softmax-normalized weight vector determines the contribution of
+    levels 2, 3, and 4 across all samples.
     """
 
-    def __init__(self, embedding_dim: int = 512, num_levels: int = 3) -> None:
+    def __init__(
+        self,
+        embedding_dim: int = 512,
+        num_levels: int = 3,
+        init_logits: Tensor | None = None,
+    ) -> None:
         super().__init__()
 
         if num_levels < 2:
@@ -25,17 +30,32 @@ class DepthGatedAggregator(nn.Module):
 
         self.embedding_dim = embedding_dim
         self.num_levels = num_levels
-        self.gate = nn.Linear(embedding_dim * num_levels, num_levels)
+
+        if init_logits is None:
+            init_logits = torch.linspace(-1.0, 1.0, steps=num_levels)
+
+        init_logits = torch.as_tensor(init_logits, dtype=torch.float32)
+
+        if init_logits.numel() != num_levels:
+            raise ValueError(
+                f"init_logits must contain {num_levels} values."
+            )
+
+        self.weight_logits = nn.Parameter(init_logits.clone())
+
+    def get_weights(self) -> Tensor:
+        """Return the global softmax-normalized depth weights."""
+        return torch.softmax(self.weight_logits, dim=0)
 
     def forward(self, level_embeddings: Sequence[Tensor]) -> tuple[Tensor, Tensor]:
         """
         Args:
-            level_embeddings: Sequence of tensors with shape [batch_size, embedding_dim].
-                The expected DermaNet order is [level_2, level_3, level_4].
+            level_embeddings: Sequence of tensors with shape
+                [batch_size, embedding_dim], ordered as [level_2, level_3, level_4].
 
         Returns:
-            aggregated_embedding: Tensor of shape [batch_size, embedding_dim].
-            depth_weights: Tensor of shape [batch_size, num_levels].
+            aggregated_embedding: Tensor with shape [batch_size, embedding_dim].
+            depth_weights: Global weights expanded to [batch_size, num_levels].
         """
         if len(level_embeddings) != self.num_levels:
             raise ValueError(
@@ -48,12 +68,11 @@ class DepthGatedAggregator(nn.Module):
         for index, embedding in enumerate(level_embeddings):
             if embedding.ndim != 2:
                 raise ValueError(
-                    f"Level embedding {index} must have shape [batch, features], "
-                    f"but received shape {tuple(embedding.shape)}."
+                    f"Level embedding {index} must have shape [batch, features]."
                 )
 
             if embedding.shape[0] != batch_size:
-                raise ValueError("All level embeddings must share the same batch size.")
+                raise ValueError("All level embeddings must share batch size.")
 
             if embedding.shape[1] != self.embedding_dim:
                 raise ValueError(
@@ -61,16 +80,16 @@ class DepthGatedAggregator(nn.Module):
                     f"{embedding.shape[1]}, expected {self.embedding_dim}."
                 )
 
-        concatenated = torch.cat(level_embeddings, dim=1)
-        depth_weights = torch.softmax(self.gate(concatenated), dim=1)
-
+        weights = self.get_weights()
         stacked_embeddings = torch.stack(level_embeddings, dim=1)
-        aggregated_embedding = torch.sum(
-            depth_weights.unsqueeze(-1) * stacked_embeddings,
-            dim=1,
-        )
 
-        return aggregated_embedding, depth_weights
+        aggregated_embedding = (
+            stacked_embeddings * weights.view(1, self.num_levels, 1)
+        ).sum(dim=1)
+
+        expanded_weights = weights.unsqueeze(0).expand(batch_size, -1)
+
+        return aggregated_embedding, expanded_weights
 
 
 class FusionMLP(nn.Module):
