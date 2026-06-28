@@ -23,7 +23,7 @@ The implementation includes:
 
 This repository is provided for anonymous review.
 
-Dataset files, challenge test labels, trained checkpoints, private experiment outputs, and restricted benchmark materials are not distributed. Users must obtain datasets through their original providers and follow the applicable access terms.
+Dataset files, challenge test labels, trained checkpoints, private experiment outputs, and restricted benchmark materials are not distributed. 
 
 ## Installation
 
@@ -35,13 +35,7 @@ Detailed setup, dataset layout, training, and evaluation instructions will be pr
 
 ## Data Availability
 
-This repository does not redistribute:
-
-* MILK10k images or challenge files
-* ISIC2019 images or labels
-* Private train/validation/test manifests
-* Trained checkpoints
-* Challenge submissions
+Users must obtain datasets through their original providers and follow the applicable access terms.
 
 ## Anonymous Review
 
